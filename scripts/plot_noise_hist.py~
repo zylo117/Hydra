@@ -1,0 +1,158 @@
+import numpy
+import pylab
+import glob, os
+from pyvisage import Image
+
+pylab.figure(2,(16,9))
+
+bptn_profile = True
+
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#53R1"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#83R1"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#83R1\\RawImages_BS_ISLadc0xB"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#83R1\\RawImages_cdsStatic_ISLacd0xB_activePixel"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#83R1\\RawImages_cdsStatic_ISLacd0xB_quietPixel2"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#83R1\\RawImages_BS_ISLacd0xB_single"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#83R1\\RawImages_BS2_BOTmTOP"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#83R1\\RawImages_BS_ISLacd0xB_double"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#83R1\\RawImages_BS"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160309\\792w12#26R1\\RawImages"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160314\\792w12#52R1\\RawImages_singleBS_gain1_bis2"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160321\\792w12#51R1\\RawImages"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160321\\792w12#83R1\\RawImages"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160321\\792w12#83R1\\RawImages_postFIB"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160321\\792w07#74R1\\RawImages"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160321\\792w07#74R1\\RawImages_postFIB"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160321\\792w07#76R1\\RawImages"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160321\\792w07#76R1\\RawImages_postFIB"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160321\\792w12#23R1\\RawImages"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160314\\792w12#83R1\\RawImages_singleBS_gain1_bis"
+#"F:\\INVISAGE\\Q13S\\Timing_Optimization\\Data\\20160127\\790w08#35R1_hard_scan_20160127_140930"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160419\\811w24#26R1\\RawImages"
+directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160419\\811w24#45R1\\RawImages"
+#directory = "F:\\INVISAGE\\Q13S\\Column_issues\\Data\\20160419\\792w15#52R1\\RawImages"
+
+#file = os.path.join(directory,"image_0*.raw")
+#file = os.path.join(directory,"image_BB_*.raw")
+#file = os.path.join(directory,"image_imaging_BB_0*.raw")
+file = os.path.join(directory,"image_imaging_BB_gain1_0*.raw")
+#file = os.path.join(directory,"image_imagingFA_BB_0*.raw")
+#file = os.path.join(directory,"image_BF_gain1_0*.raw")
+#file = os.path.join(directory,"image_BB_gain16_0*.raw")
+print file
+
+#raw0 = glob.glob(os.path.join(directory,"RawImages_gain1_v2\\image_*.raw"))
+#raw0 = glob.glob(os.path.join(directory,"RawImages_gain1_FA\\image_*.raw"))
+#raw0 = glob.glob(os.path.join(directory,"RawImages_gain1_FA_ISLadcB\\image_*.raw"))
+#raw0 = glob.glob(os.path.join(directory,"RawImages\\image_*.raw"))
+#raw0 = glob.glob(os.path.join(directory,"RawImages_cdsStatic_ISLacd0xB\\image_*.raw"))
+raw0 = glob.glob(file)
+#raw0 = glob.glob(os.path.join(directory,"RawImages_gain1_12M\\image_*.raw"))
+print 'raw0:',raw0
+
+suffix_analysis = 'v0'
+
+Nimages = len(raw0)
+print "Number of images found:",Nimages
+
+#rows = 3000
+#columns = 4000
+roi = None
+#rows = 3136
+#columns = 4352
+rows = 3000
+columns = 4352
+#roi = (68,3135,0,3999)
+
+col_chan = 16
+
+im0 = Image.Image(raw0[1],rows=rows,columns=columns)
+im1 = Image.Image(raw0[2],rows=rows,columns=columns)
+im0.set_ROI(roi)
+im1.set_ROI(roi)
+
+im1.subtract(im0)
+
+arr = im1.get_array()
+
+arr_split = arr[:,0::col_chan]
+for i in range(1,col_chan):
+    arr_split = numpy.hstack((arr_split,arr[:,i::col_chan]))
+
+ptn_col = numpy.std(arr,axis=0)/2**0.5
+ptn_col_split = numpy.std(arr_split,axis=0)/2**0.5
+
+if bptn_profile:
+
+    pylab.xlabel('Column')
+    pylab.ylabel('Column PTN [DN]')
+    pylab.title('ADC split')
+    #pylab.xlim([6*4352/8.,7*4352/8.])
+    pylab.plot(range(len(ptn_col_split)),ptn_col_split)
+    pylab.show()
+    '''
+    pylab.savefig(os.path.join(directory,"ptn_profile_split.png"))
+    pylab.clf()
+    '''
+
+    #pylab.xlim([0,200])
+    #pylab.xlim([6*4352/8.,7*4352/8.])
+    #pylab.xlim([4240,4280])
+    #pylab.ylim([0.3,1.2])
+    pylab.xlabel('Column')
+    pylab.ylabel('Column PTN [DN]')
+    pylab.plot(range(len(ptn_col)),ptn_col)
+    pylab.show()
+    '''
+    pylab.savefig(os.path.join(directory,"ptn_profile.png"))
+    pylab.clf()
+    pylab.close()
+    '''
+
+
+
+
+else: 
+
+    ADC = []
+
+    for col_ptn in range(len(ptn_col)):
+
+        if ptn_col[col_ptn]<1.0: continue
+        adc = int((col_ptn%16)/2.+1)
+        ADC.append(adc)
+        arr0 = im0.get_array()
+        #colx = arr0[:,4333]
+        #colx = arr0[:,2524]
+        colx = arr0[:,col_ptn]
+
+        pylab.plot(range(len(colx)),colx)
+        #pylab.show()
+        pylab.savefig(os.path.join(directory,'Column_profile',"ColProfile_%.2fDN_col%i_adc%i.png"%(ptn_col[col_ptn],col_ptn,adc)))
+        pylab.clf()
+
+        hist, bins = numpy.histogram(colx,bins=512,range=(-0.5,511.5))
+        width = bins[1] - bins[0]
+        center = (bins[:-1] + bins[1:]) / 2
+
+        pylab.bar(center, hist, align='center', width=width, color='b')
+        pylab.xlabel('DN')
+        pylab.ylabel('#pixels')
+        pylab.title('column %i'%col_ptn)
+
+        pylab.savefig(os.path.join(directory,'Column_hist',"ColHist_%.2fDN_col%i_adc%i.png"%(ptn_col[col_ptn],col_ptn,adc)))
+        pylab.clf()
+        pylab.close()
+
+        #pylab.show()
+
+    hist, bins = numpy.histogram(ADC,bins=8,range=(0.5,8.5))
+    width = bins[1] - bins[0]
+    center = (bins[:-1] + bins[1:]) / 2
+    pylab.bar(center, hist, align='center', width=width, color='b')
+
+    pylab.show()
+
+
+
+
